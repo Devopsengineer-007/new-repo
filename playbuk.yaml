@@ -1,0 +1,30 @@
+---
+- name: Upgrade Java 11 to Java 17
+  hosts: app_servers
+  become: yes
+
+  tasks:
+
+    - name: Install OpenJDK 17
+      apt:
+        name: openjdk-17-jdk
+        state: present
+        update_cache: yes
+
+    - name: Find Java 17 binary
+      stat:
+        path: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+      register: java17
+
+    - name: Set Java 17 as default
+      alternatives:
+        name: java
+        path: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+
+    - name: Verify Java version
+      shell: java -version 2>&1 | head -1
+      register: java_version
+      changed_when: false
+
+    - debug:
+        msg: "{{ java_version.stdout }}"
